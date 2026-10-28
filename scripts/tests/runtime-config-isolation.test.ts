@@ -73,3 +73,17 @@ test("WebUI never borrows bundled instance ports or credentials, even when activ
   expect(manager.readMaiBotWebUiEndpointSync().port).toBe(18002);
   expect((await manager.readMaiBotWebUiToken()).token).toBe("active-instance");
 });
+test("WebUI endpoint prefers the modern [http] section while keeping legacy [webui] support", async () => {
+  const root = await fixture();
+  const maibotRoot = join(root, "active");
+  await mkdir(join(maibotRoot, "config"), { recursive: true });
+  const manager = new InitManager({
+    maibotRoot,
+    bundledModulesRoot: join(root, "bundled"),
+    userDataRoot: root,
+  } as RuntimePaths);
+  await writeFile(join(maibotRoot, "config", "bot_config.toml"), '[http]\nhost = ["127.0.0.1", "::1"]\nport = 18003\n\n[webui]\nenabled = true\n');
+  expect(manager.readMaiBotWebUiEndpointSync().port).toBe(18003);
+  await writeFile(join(maibotRoot, "config", "bot_config.toml"), '[webui]\nhost = "127.0.0.1"\nport = 18002\n');
+  expect(manager.readMaiBotWebUiEndpointSync().port).toBe(18002);
+});
