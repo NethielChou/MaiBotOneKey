@@ -2138,7 +2138,8 @@ export class InitManager {
     let reason = "未找到 WebUI 配置，已使用默认地址";
     try {
       const document = parseToml(readFileSync(configPath, "utf8"));
-      const config = document.webui;
+      // MaiBot Core 1.3.15+ moved host/port from [webui] to [http]; keep [webui] for older cores.
+      const config = document.http ?? document.webui;
       if (config && typeof config === "object" && !Array.isArray(config) && !(config instanceof Date)) {
         return {
           ...buildMaiBotWebUiEndpoint(asString(config["host"], fallback.host), asTcpPort(config["port"], fallback.port)),
